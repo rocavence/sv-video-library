@@ -774,25 +774,33 @@
         function createVideoItem(video) {
             const trendingBadge = video.trending ? '<div class="trending-badge">熱門</div>' : '';
             
-            // 生成縮圖路徑 - 處理雙副檔名問題
-            let thumbnailPath = video.path
-                .replace('./街聲波影片/', './thumbnails/')  // 替換基礎路徑
-                .replace(/\.mp4$/i, '.jpg');  // 替換副檔名
-            
-            console.log('Video path:', video.path);
-            console.log('Thumbnail path:', thumbnailPath);
-            
             // 手機版使用真實縮圖，桌面版使用影片縮圖
             if (isMobile) {
+                // 生成縮圖路徑 - 使用 encodeURIComponent 處理中文
+                let thumbnailPath = video.path
+                    .replace('./街聲波影片/', './thumbnails/')
+                    .replace(/\.mp4$/i, '.jpg');
+                
+                // URL 編碼中文字符
+                const pathParts = thumbnailPath.split('/');
+                for (let i = 0; i < pathParts.length; i++) {
+                    if (i > 1) { // 跳過 ./thumbnails
+                        pathParts[i] = encodeURIComponent(pathParts[i]);
+                    }
+                }
+                thumbnailPath = pathParts.join('/');
+                
+                console.log('Mobile thumbnail path:', thumbnailPath);
+                
                 return `
                     <div class="video-item" onclick="playVideo('${video.path}')">
                         ${trendingBadge}
-                        <div class="video-thumbnail mobile-thumbnail loading-shimmer" data-video-path="${video.path}">
+                        <div class="video-thumbnail mobile-thumbnail" data-video-path="${video.path}">
                             <img class="thumbnail-image" 
                                  src="${thumbnailPath}" 
                                  alt="${video.title}"
-                                 onload="handleThumbnailLoaded(this)"
-                                 onerror="handleThumbnailError(this)">
+                                 onload="console.log('Thumbnail loaded:', '${video.title}')"
+                                 onerror="console.log('Thumbnail failed:', '${video.title}'); handleThumbnailError(this)">
                             <div class="play-overlay"></div>
                         </div>
                         <div class="video-info">
@@ -941,13 +949,25 @@
             // 計算總影片數量
             totalVideos = videoData.all.length;
             loadingCount.textContent = `0 / ${totalVideos}`;
-            console.log(`Initializing loading: ${totalVideos} total videos`);
+            console.log(`Initializing loading: ${totalVideos} total videos, isMobile: ${isMobile}`);
             
-            // 手機版和桌面版都設置較短的超時
+            // 手機版快速完成載入，不等待縮圖
+            if (isMobile) {
+                setTimeout(() => {
+                    progressBar.style.width = '100%';
+                    loadingCount.textContent = `${totalVideos} / ${totalVideos}`;
+                    setTimeout(() => {
+                        completeLoading();
+                    }, 500);
+                }, 1000);
+                return;
+            }
+            
+            // 桌面版設置超時保護（5秒後強制完成）
             loadingTimeout = setTimeout(() => {
                 console.log('Loading timeout - forcing completion');
                 completeLoading();
-            }, 5000); // 5秒後強制完成
+            }, 5000);
         }
 
         // 渲染影片列表
