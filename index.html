@@ -761,34 +761,97 @@
         const progressBar = document.getElementById('progressBar');
         const loadingCount = document.getElementById('loadingCount');
 
+        // 手機檢測
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
         // Loading 狀態
         let totalVideos = 0;
         let loadedVideos = 0;
         let loadingTimeout;
+        let intersectionObserver;
 
         // 創建影片項目
         function createVideoItem(video) {
             const trendingBadge = video.trending ? '<div class="trending-badge">熱門</div>' : '';
-            return `
-                <div class="video-item" onclick="playVideo('${video.path}')">
-                    ${trendingBadge}
-                    <div class="video-thumbnail loading-shimmer">
-                        <video preload="metadata" muted 
-                               onloadeddata="handleVideoLoaded(this)" 
-                               onerror="handleVideoError(this)">
-                            <source src="${video.path}#t=0.5" type="video/mp4">
-                        </video>
-                        <div class="play-overlay"></div>
-                    </div>
-                    <div class="video-info">
-                        <div class="video-title">${video.title}</div>
-                        <div class="video-duration">
-                            <div class="duration-dot"></div>
-                            ${video.duration}
+            
+            // 手機版使用靜態縮圖，桌面版使用影片縮圖
+            if (isMobile) {
+                return `
+                    <div class="video-item" onclick="playVideo('${video.path}')">
+                        ${trendingBadge}
+                        <div class="video-thumbnail mobile-thumbnail" data-video-path="${video.path}">
+                            <div class="mobile-placeholder">
+                                <div class="video-icon">🎬</div>
+                                <div class="video-format">MP4</div>
+                            </div>
+                            <div class="play-overlay"></div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">${video.title}</div>
+                            <div class="video-duration">
+                                <div class="duration-dot"></div>
+                                ${video.duration}
+                            </div>
                         </div>
                     </div>
-                </div>
-            `;
+                `;
+            } else {
+                return `
+                    <div class="video-item" onclick="playVideo('${video.path}')">
+                        ${trendingBadge}
+                        <div class="video-thumbnail loading-shimmer" data-video-path="${video.path}">
+                            <video class="lazy-video" data-src="${video.path}#t=0.5" muted>
+                            </video>
+                            <div class="play-overlay"></div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">${video.title}</div>
+                            <div class="video-duration">
+                                <div class="duration-dot"></div>
+                                ${video.duration}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // 桌面版延遲載入影片
+        function initializeLazyLoading() {
+            if (isMobile) return;
+
+            intersectionObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const videoElement = entry.target.querySelector('.lazy-video');
+                        if (videoElement && !videoElement.src) {
+                            videoElement.src = videoElement.dataset.src;
+                            videoElement.preload = 'metadata';
+                            videoElement.onloadeddata = () => {
+                                entry.target.classList.remove('loading-shimmer');
+                                loadedVideos++;
+                                updateLoadingProgress();
+                            };
+                            videoElement.onerror = () => {
+                                entry.target.classList.remove('loading-shimmer');
+                                loadedVideos++;
+                                updateLoadingProgress();
+                            };
+                            intersectionObserver.unobserve(entry.target);
+                        }
+                    }
+                });
+            }, { 
+                rootMargin: '50px',
+                threshold: 0.1 
+            });
+
+            // 觀察所有影片縮圖
+            setTimeout(() => {
+                document.querySelectorAll('.video-thumbnail:not(.mobile-thumbnail)').forEach(thumbnail => {
+                    intersectionObserver.observe(thumbnail);
+                });
+            }, 100);
         }
 
         // 處理影片載入完成
@@ -837,11 +900,21 @@
             totalVideos = videoData.all.length;
             loadingCount.textContent = `0 / ${totalVideos}`;
             
-            // 設置超時保護（15秒後強制完成）
+            // 手機版快速完成載入（不需要等影片）
+            if (isMobile) {
+                setTimeout(() => {
+                    progressBar.style.width = '100%';
+                    loadingCount.textContent = `${totalVideos} / ${totalVideos}`;
+                    setTimeout(completeLoading, 800);
+                }, 500);
+                return;
+            }
+            
+            // 桌面版設置超時保護（10秒後強制完成）
             loadingTimeout = setTimeout(() => {
                 console.log('Loading timeout - forcing completion');
                 completeLoading();
-            }, 15000);
+            }, 10000);
         }
 
         // 渲染影片列表
@@ -917,6 +990,11 @@
             Object.keys(videoData).forEach(category => {
                 renderVideos(category);
             });
+            
+            // 桌面版初始化延遲載入
+            if (!isMobile) {
+                initializeLazyLoading();
+            }
         });
     </script>
 </body>
