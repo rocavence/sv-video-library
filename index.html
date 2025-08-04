@@ -774,16 +774,20 @@
         function createVideoItem(video) {
             const trendingBadge = video.trending ? '<div class="trending-badge">熱門</div>' : '';
             
-            // 手機版使用靜態縮圖，桌面版使用影片縮圖
+            // 生成縮圖路徑
+            const thumbnailPath = video.path.replace(/\.mp4$/, '.jpg').replace('./街聲波影片/', './thumbnails/');
+            
+            // 手機版使用真實縮圖，桌面版使用影片縮圖
             if (isMobile) {
                 return `
                     <div class="video-item" onclick="playVideo('${video.path}')">
                         ${trendingBadge}
                         <div class="video-thumbnail mobile-thumbnail" data-video-path="${video.path}">
-                            <div class="mobile-placeholder">
-                                <div class="video-icon">🎬</div>
-                                <div class="video-format">MP4</div>
-                            </div>
+                            <img class="thumbnail-image" 
+                                 src="${thumbnailPath}" 
+                                 alt="${video.title}"
+                                 onload="handleThumbnailLoaded(this)"
+                                 onerror="handleThumbnailError(this)">
                             <div class="play-overlay"></div>
                         </div>
                         <div class="video-info">
@@ -814,6 +818,29 @@
                     </div>
                 `;
             }
+        }
+
+        // 處理縮圖載入完成（手機版）
+        function handleThumbnailLoaded(imgElement) {
+            imgElement.parentElement.classList.remove('loading-shimmer');
+            loadedVideos++;
+            updateLoadingProgress();
+        }
+
+        // 處理縮圖載入錯誤（手機版）
+        function handleThumbnailError(imgElement) {
+            // 載入失敗時顯示備用樣式
+            imgElement.style.display = 'none';
+            const placeholder = document.createElement('div');
+            placeholder.className = 'mobile-placeholder';
+            placeholder.innerHTML = `
+                <div class="video-icon">🎬</div>
+                <div class="video-format">MP4</div>
+            `;
+            imgElement.parentElement.appendChild(placeholder);
+            imgElement.parentElement.classList.remove('loading-shimmer');
+            loadedVideos++;
+            updateLoadingProgress();
         }
 
         // 桌面版延遲載入影片
@@ -900,13 +927,13 @@
             totalVideos = videoData.all.length;
             loadingCount.textContent = `0 / ${totalVideos}`;
             
-            // 手機版快速完成載入（不需要等影片）
+            // 手機版等待縮圖載入
             if (isMobile) {
-                setTimeout(() => {
-                    progressBar.style.width = '100%';
-                    loadingCount.textContent = `${totalVideos} / ${totalVideos}`;
-                    setTimeout(completeLoading, 800);
-                }, 500);
+                // 縮圖載入超時保護（8秒後強制完成）
+                loadingTimeout = setTimeout(() => {
+                    console.log('Mobile thumbnail loading timeout - forcing completion');
+                    completeLoading();
+                }, 8000);
                 return;
             }
             
