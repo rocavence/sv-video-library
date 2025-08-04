@@ -825,19 +825,26 @@
             imgElement.parentElement.classList.remove('loading-shimmer');
             loadedVideos++;
             updateLoadingProgress();
+            console.log(`Thumbnail loaded: ${loadedVideos}/${totalVideos}`);
         }
 
         // 處理縮圖載入錯誤（手機版）
         function handleThumbnailError(imgElement) {
+            console.log('Thumbnail failed to load:', imgElement.src);
             // 載入失敗時顯示備用樣式
             imgElement.style.display = 'none';
-            const placeholder = document.createElement('div');
-            placeholder.className = 'mobile-placeholder';
-            placeholder.innerHTML = `
-                <div class="video-icon">🎬</div>
-                <div class="video-format">MP4</div>
-            `;
-            imgElement.parentElement.appendChild(placeholder);
+            
+            // 檢查是否已經有 placeholder
+            if (!imgElement.parentElement.querySelector('.mobile-placeholder')) {
+                const placeholder = document.createElement('div');
+                placeholder.className = 'mobile-placeholder';
+                placeholder.innerHTML = `
+                    <div class="video-icon">🎬</div>
+                    <div class="video-format">MP4</div>
+                `;
+                imgElement.parentElement.appendChild(placeholder);
+            }
+            
             imgElement.parentElement.classList.remove('loading-shimmer');
             loadedVideos++;
             updateLoadingProgress();
@@ -923,25 +930,19 @@
 
         // 初始化載入進度
         function initializeLoading() {
+            // 重置計數器
+            loadedVideos = 0;
+            
             // 計算總影片數量
             totalVideos = videoData.all.length;
             loadingCount.textContent = `0 / ${totalVideos}`;
+            console.log(`Initializing loading: ${totalVideos} total videos`);
             
-            // 手機版等待縮圖載入
-            if (isMobile) {
-                // 縮圖載入超時保護（8秒後強制完成）
-                loadingTimeout = setTimeout(() => {
-                    console.log('Mobile thumbnail loading timeout - forcing completion');
-                    completeLoading();
-                }, 8000);
-                return;
-            }
-            
-            // 桌面版設置超時保護（10秒後強制完成）
+            // 手機版和桌面版都設置較短的超時
             loadingTimeout = setTimeout(() => {
                 console.log('Loading timeout - forcing completion');
                 completeLoading();
-            }, 10000);
+            }, 5000); // 5秒後強制完成
         }
 
         // 渲染影片列表
@@ -950,6 +951,19 @@
             if (container && videoData[category]) {
                 container.innerHTML = videoData[category].map(createVideoItem).join('');
             }
+        }
+
+        // 只在主分類計算載入數量
+        function countVisibleVideos() {
+            if (isMobile) {
+                // 手機版只計算目前顯示的分類
+                const activeSection = document.querySelector('.category-section.active');
+                if (activeSection) {
+                    const images = activeSection.querySelectorAll('.thumbnail-image');
+                    return images.length;
+                }
+            }
+            return videoData.all.length;
         }
 
         // 播放影片
