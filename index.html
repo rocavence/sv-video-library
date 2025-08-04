@@ -743,19 +743,13 @@
         function createVideoItem(video) {
             const trendingBadge = video.trending ? '<div class="trending-badge">熱門</div>' : '';
             
-            // 生成縮圖路徑
+            // 生成縮圖路徑 - 修正路徑轉換
             let thumbnailPath = video.path
-                .replace('街聲波影片/', 'thumbnails/')
+                .replace('街聲波影片/', './thumbnails/')  // 加上 ./
                 .replace(/\.mp4$/i, '.jpg');
             
-            // URL 編碼中文字符
-            const pathParts = thumbnailPath.split('/');
-            for (let i = 0; i < pathParts.length; i++) {
-                if (i > 0) { // 跳過第一個空字符串
-                    pathParts[i] = encodeURIComponent(pathParts[i]);
-                }
-            }
-            thumbnailPath = pathParts.join('/');
+            console.log('Video:', video.name);
+            console.log('Thumbnail path:', thumbnailPath);
             
             return `
                 <div class="video-item" onclick="playVideo('${video.path}')">
@@ -764,9 +758,9 @@
                         <img class="thumbnail-image" 
                              src="${thumbnailPath}" 
                              alt="${video.title}"
-                             onload="this.style.display='block'"
-                             onerror="showPlaceholder(this)">
-                        <div class="thumbnail-placeholder">
+                             onload="console.log('✅ Loaded:', '${video.name}'); this.style.display='block'; this.nextElementSibling.style.display='none';"
+                             onerror="console.log('❌ Failed:', '${video.name}', this.src); showPlaceholder(this)">
+                        <div class="thumbnail-placeholder" style="display: flex;">
                             <div class="video-icon">🎬</div>
                             <div class="video-format">MP4</div>
                         </div>
