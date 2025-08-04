@@ -65,7 +65,7 @@ def generate_thumbnail(video_path, output_path, timestamp="00:00:01"):
 
 def process_video_folder(video_folder, output_folder):
     """
-    處理整個影片資料夾
+    處理整個影片資料夾（支援多層結構）
     
     Args:
         video_folder: 街聲波影片資料夾路徑
@@ -90,40 +90,53 @@ def process_video_folder(video_folder, output_folder):
     print(f"📁 輸出資料夾: {output_folder}")
     print("-" * 50)
     
-    # 遍歷所有子資料夾
-    for category_folder in video_folder.iterdir():
-        if not category_folder.is_dir():
-            continue
-            
-        category_name = category_folder.name
-        print(f"\n📂 處理分類: {category_name}")
+    def process_directory(current_dir, output_dir, level=0):
+        """遞迴處理目錄"""
+        nonlocal total_videos, success_count, error_count
         
-        # 建立對應的輸出子資料夾
-        category_output = output_folder / category_name
-        category_output.mkdir(exist_ok=True)
+        indent = "  " * level
+        folder_name = current_dir.name
+        print(f"{indent}📂 處理分類: {folder_name}")
         
-        # 處理該分類下的所有影片
-        video_files = [f for f in category_folder.iterdir() 
-                      if f.suffix.lower() in video_extensions]
+        # 建立對應的輸出資料夾
+        output_dir.mkdir(exist_ok=True)
+        
+        # 先處理當前目錄的影片檔案
+        video_files = [f for f in current_dir.iterdir() 
+                      if f.is_file() and f.suffix.lower() in video_extensions]
         
         for video_file in video_files:
             total_videos += 1
             
             # 生成縮圖檔案名 (影片名.jpg)
             thumbnail_name = video_file.stem + '.jpg'
-            thumbnail_path = category_output / thumbnail_name
+            thumbnail_path = output_dir / thumbnail_name
             
-            print(f"  🎯 {video_file.name} -> {thumbnail_name}")
+            print(f"{indent}  🎯 {video_file.name} -> {thumbnail_name}")
             
             # 生成縮圖
             success, error = generate_thumbnail(video_file, thumbnail_path)
             
             if success:
                 success_count += 1
-                print(f"    ✅ 成功")
+                print(f"{indent}    ✅ 成功")
             else:
                 error_count += 1
-                print(f"    ❌ 失敗: {error[:100]}...")
+                print(f"{indent}    ❌ 失敗: {error[:100]}...")
+        
+        # 再處理子目錄
+        sub_dirs = [d for d in current_dir.iterdir() if d.is_dir()]
+        for sub_dir in sub_dirs:
+            sub_output_dir = output_dir / sub_dir.name
+            process_directory(sub_dir, sub_output_dir, level + 1)
+    
+    # 開始遞迴處理
+    for category_folder in video_folder.iterdir():
+        if not category_folder.is_dir():
+            continue
+            
+        category_output = output_folder / category_folder.name
+        process_directory(category_folder, category_output)
     
     # 顯示結果
     print("\n" + "=" * 50)
@@ -132,6 +145,13 @@ def process_video_folder(video_folder, output_folder):
     print(f"✅ 成功: {success_count} 個")
     print(f"❌ 失敗: {error_count} 個")
     print(f"📁 縮圖位置: {output_folder}")
+    
+    # 顯示資料夾結構
+    print(f"\n📋 生成的縮圖結構:")
+    for item in sorted(output_folder.rglob("*.jpg")):
+        relative_path = item.relative_to(output_folder)
+        print(f"  📸 {relative_path}")
+
 
 def main():
     """主程式"""

@@ -774,15 +774,20 @@
         function createVideoItem(video) {
             const trendingBadge = video.trending ? '<div class="trending-badge">熱門</div>' : '';
             
-            // 生成縮圖路徑
-            const thumbnailPath = video.path.replace(/\.mp4$/, '.jpg').replace('./街聲波影片/', './thumbnails/');
+            // 生成縮圖路徑 - 處理雙副檔名問題
+            let thumbnailPath = video.path
+                .replace('./街聲波影片/', './thumbnails/')  // 替換基礎路徑
+                .replace(/\.mp4$/i, '.jpg');  // 替換副檔名
+            
+            console.log('Video path:', video.path);
+            console.log('Thumbnail path:', thumbnailPath);
             
             // 手機版使用真實縮圖，桌面版使用影片縮圖
             if (isMobile) {
                 return `
                     <div class="video-item" onclick="playVideo('${video.path}')">
                         ${trendingBadge}
-                        <div class="video-thumbnail mobile-thumbnail" data-video-path="${video.path}">
+                        <div class="video-thumbnail mobile-thumbnail loading-shimmer" data-video-path="${video.path}">
                             <img class="thumbnail-image" 
                                  src="${thumbnailPath}" 
                                  alt="${video.title}"
