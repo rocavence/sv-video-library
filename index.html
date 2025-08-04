@@ -64,29 +64,6 @@
         .loading-text {
             font-size: 16px;
             color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 10px;
-        }
-
-        .loading-progress {
-            width: 300px;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-            overflow: hidden;
-            margin-bottom: 10px;
-        }
-
-        .loading-progress-bar {
-            height: 100%;
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-            width: 0%;
-            transition: width 0.3s ease;
-            border-radius: 3px;
-        }
-
-        .loading-count {
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.6);
         }
 
         @keyframes spin {
@@ -99,7 +76,7 @@
             50% { opacity: 0.7; }
         }
 
-        /* Hide main content during loading */
+        /* Main App */
         .main-app {
             opacity: 0;
             transition: opacity 0.5s ease;
@@ -291,19 +268,42 @@
             justify-content: center;
         }
 
-        .video-thumbnail video {
+        .thumbnail-image {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            background: #222;
+            border-radius: 8px;
         }
 
-        .video-thumbnail::before {
-            content: '🎬';
+        .thumbnail-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: white;
+            text-align: center;
             position: absolute;
-            font-size: 32px;
-            z-index: 1;
-            opacity: 0.6;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .video-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+            opacity: 0.8;
+        }
+
+        .video-format {
+            font-size: 12px;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 8px;
+            border-radius: 4px;
+            backdrop-filter: blur(10px);
         }
 
         .play-overlay {
@@ -368,6 +368,27 @@
             height: 3px;
             background: #ff6b6b;
             border-radius: 50%;
+        }
+
+        .trending-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 12px;
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            z-index: 3;
+        }
+
+        .trending-badge::before {
+            content: '🔥';
+            font-size: 8px;
         }
 
         .modal {
@@ -460,27 +481,6 @@
             border-radius: 2px;
         }
 
-        .trending-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
-            color: white;
-            font-size: 10px;
-            font-weight: 600;
-            padding: 4px 8px;
-            border-radius: 12px;
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            z-index: 3;
-        }
-
-        .trending-badge::before {
-            content: '🔥';
-            font-size: 8px;
-        }
-
         @media (max-width: 768px) {
             .video-grid {
                 grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -503,21 +503,6 @@
                 font-size: 20px;
             }
         }
-
-        .loading-shimmer {
-            background: linear-gradient(90deg, 
-                rgba(255, 255, 255, 0.1) 25%, 
-                rgba(255, 255, 255, 0.2) 50%, 
-                rgba(255, 255, 255, 0.1) 75%
-            );
-            background-size: 200% 100%;
-            animation: shimmer 2s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
-        }
     </style>
 </head>
 <body>
@@ -526,10 +511,6 @@
         <div class="loading-logo">街聲波影片庫</div>
         <div class="loading-spinner"></div>
         <div class="loading-text">載入影片縮圖中...</div>
-        <div class="loading-progress">
-            <div class="loading-progress-bar" id="progressBar"></div>
-        </div>
-        <div class="loading-count" id="loadingCount">0 / 0</div>
     </div>
 
     <!-- Main App -->
@@ -541,87 +522,88 @@
             </svg>
         </div>
 
-    <div class="categories">
-        <div class="category-tabs">
-            <button class="category-tab active" data-category="all">全部</button>
-            <button class="category-tab" data-category="neutral">中性素材</button>
-            <button class="category-tab" data-category="realistic">寫實人物</button>
-            <button class="category-tab" data-category="nature">山海大地</button>
-            <button class="category-tab" data-category="funny">搞怪素材</button>
-        </div>
-    </div>
-
-    <div class="main-content">
-        <!-- 精選推薦 -->
-        <div class="featured-section">
-            <div class="featured-card">
-                <div class="featured-title">精選影片素材</div>
-                <div class="featured-subtitle">為你的創作注入靈感</div>
+        <div class="categories">
+            <div class="category-tabs">
+                <button class="category-tab active" data-category="all">全部</button>
+                <button class="category-tab" data-category="neutral">中性素材</button>
+                <button class="category-tab" data-category="realistic">寫實人物</button>
+                <button class="category-tab" data-category="nature">山海大地</button>
+                <button class="category-tab" data-category="funny">搞怪素材</button>
             </div>
         </div>
 
-        <!-- 全部影片 -->
-        <div class="category-section active" data-section="all">
-            <div class="section-header">
-                <div class="section-title">熱門推薦</div>
-                <a href="#" class="view-all">查看全部</a>
+        <div class="main-content">
+            <!-- 精選推薦 -->
+            <div class="featured-section">
+                <div class="featured-card">
+                    <div class="featured-title">精選影片素材</div>
+                    <div class="featured-subtitle">為你的創作注入靈感</div>
+                </div>
             </div>
-            <div class="video-grid" id="allVideos"></div>
-        </div>
 
-        <!-- 中性素材 -->
-        <div class="category-section" data-section="neutral">
-            <div class="section-header">
-                <div class="section-title">中性素材</div>
-                <a href="#" class="view-all">15 個影片</a>
+            <!-- 全部影片 -->
+            <div class="category-section active" data-section="all">
+                <div class="section-header">
+                    <div class="section-title">熱門推薦</div>
+                    <a href="#" class="view-all">查看全部</a>
+                </div>
+                <div class="video-grid" id="allVideos"></div>
             </div>
-            <div class="video-grid" id="neutralVideos"></div>
-        </div>
 
-        <!-- 寫實人物 -->
-        <div class="category-section" data-section="realistic">
-            <div class="section-header">
-                <div class="section-title">寫實人物</div>
-                <a href="#" class="view-all">15 個影片</a>
+            <!-- 中性素材 -->
+            <div class="category-section" data-section="neutral">
+                <div class="section-header">
+                    <div class="section-title">中性素材</div>
+                    <a href="#" class="view-all">15 個影片</a>
+                </div>
+                <div class="video-grid" id="neutralVideos"></div>
             </div>
-            <div class="video-grid" id="realisticVideos"></div>
-        </div>
 
-        <!-- 山海大地自然 -->
-        <div class="category-section" data-section="nature">
-            <div class="section-header">
-                <div class="section-title">山海大地自然</div>
-                <a href="#" class="view-all">30 個影片</a>
+            <!-- 寫實人物 -->
+            <div class="category-section" data-section="realistic">
+                <div class="section-header">
+                    <div class="section-title">寫實人物</div>
+                    <a href="#" class="view-all">15 個影片</a>
+                </div>
+                <div class="video-grid" id="realisticVideos"></div>
             </div>
-            
-            <div class="subsection">
-                <h4>天空系列</h4>
-                <div class="video-grid" id="skyVideos"></div>
-            </div>
-            
-            <div class="subsection">
-                <h4>山脈系列</h4>
-                <div class="video-grid" id="mountainVideos"></div>
-            </div>
-            
-            <div class="subsection">
-                <h4>森林系列</h4>
-                <div class="video-grid" id="forestVideos"></div>
-            </div>
-            
-            <div class="subsection">
-                <h4>海洋系列</h4>
-                <div class="video-grid" id="oceanVideos"></div>
-            </div>
-        </div>
 
-        <!-- 搞怪素材 -->
-        <div class="category-section" data-section="funny">
-            <div class="section-header">
-                <div class="section-title">搞怪素材</div>
-                <a href="#" class="view-all">11 個影片</a>
+            <!-- 山海大地自然 -->
+            <div class="category-section" data-section="nature">
+                <div class="section-header">
+                    <div class="section-title">山海大地自然</div>
+                    <a href="#" class="view-all">30 個影片</a>
+                </div>
+                
+                <div class="subsection">
+                    <h4>天空系列</h4>
+                    <div class="video-grid" id="skyVideos"></div>
+                </div>
+                
+                <div class="subsection">
+                    <h4>山脈系列</h4>
+                    <div class="video-grid" id="mountainVideos"></div>
+                </div>
+                
+                <div class="subsection">
+                    <h4>森林系列</h4>
+                    <div class="video-grid" id="forestVideos"></div>
+                </div>
+                
+                <div class="subsection">
+                    <h4>海洋系列</h4>
+                    <div class="video-grid" id="oceanVideos"></div>
+                </div>
             </div>
-            <div class="video-grid" id="funnyVideos"></div>
+
+            <!-- 搞怪素材 -->
+            <div class="category-section" data-section="funny">
+                <div class="section-header">
+                    <div class="section-title">搞怪素材</div>
+                    <a href="#" class="view-all">13 個影片</a>
+                </div>
+                <div class="video-grid" id="funnyVideos"></div>
+            </div>
         </div>
     </div>
 
@@ -636,14 +618,12 @@
         </div>
     </div>
 
-    </div> <!-- End main-app -->
-
     <script>
-        // 影片數據結構
+        // 影片數據結構 - 根據實際檔案清單
         const videoData = {
             all: [],
             neutral: [
-                { name: '幾何圖形_三角形.mp4', title: '幾何圖形 - 三角形', duration: '0:30', path: './街聲波影片/中性素材（15）/幾何圖形_三角形.mp4', trending: true },
+                { name: '幾何圖形_三角形.mp4', title: '幾何圖形 - 三角形', duration: '0:30', path: '街聲波影片/中性素材（15）/幾何圖形_三角形.mp4', trending: true },
                 { name: '幾何圖形_圓形.mp4', title: '幾何圖形 - 圓形', duration: '0:25', path: '街聲波影片/中性素材（15）/幾何圖形_圓形.mp4' },
                 { name: '幾何圖形_彈跳球.mp4', title: '幾何圖形 - 彈跳球', duration: '0:35', path: '街聲波影片/中性素材（15）/幾何圖形_彈跳球.mp4' },
                 { name: '幾何圖形_粒子.mp4', title: '幾何圖形 - 粒子', duration: '0:40', path: '街聲波影片/中性素材（15）/幾何圖形_粒子.mp4', trending: true },
@@ -715,7 +695,6 @@
                 { name: '衝浪.mp4', title: '衝浪', duration: '1:10', path: '街聲波影片/山海大地自然（30）/海洋系列（8）/衝浪.mp4' }
             ],
             funny: [
-                { name: '29828312_MotionElements_fluid-symphony-abstract-video-of-slowly-flowing-c-hd.mp4', title: 'Fluid Symphony', duration: '2:10', path: '街聲波影片/搞怪素材（11）/29828312_MotionElements_fluid-symphony-abstract-video-of-slowly-flowing-c-hd.mp4' },
                 { name: '80 年代霓虹.mp4', title: '80 年代霓虹', duration: '1:30', path: '街聲波影片/搞怪素材（11）/80 年代霓虹.mp4', trending: true },
                 { name: 'Emoji.mp4', title: 'Emoji', duration: '0:40', path: '街聲波影片/搞怪素材（11）/Emoji.mp4' },
                 { name: '像素風格.mp4', title: '像素風格', duration: '1:15', path: '街聲波影片/搞怪素材（11）/像素風格.mp4' },
@@ -724,8 +703,9 @@
                 { name: '可愛貓.mp4', title: '可愛貓', duration: '0:42', path: '街聲波影片/搞怪素材（11）/可愛貓.mp4' },
                 { name: '尿尿液體.mp4', title: '尿尿液體', duration: '0:35', path: '街聲波影片/搞怪素材（11）/尿尿液體.mp4' },
                 { name: '故障效果.mp4', title: '故障效果', duration: '1:00', path: '街聲波影片/搞怪素材（11）/故障效果.mp4' },
+                { name: '油脂.mp4', title: '油脂', duration: '2:10', path: '街聲波影片/搞怪素材（11）/油脂.mp4' },
                 { name: '液體.mp4', title: '液體', duration: '1:20', path: '街聲波影片/搞怪素材（11）/液體.mp4' },
-                { name: '液體流動.mp4', title: '液體流động', duration: '1:25', path: '街聲波影片/搞怪素材（11）/液體流動.mp4' },
+                { name: '液體流動.mp4', title: '液體流動', duration: '1:25', path: '街聲波影片/搞怪素材（11）/液體流動.mp4' },
                 { name: '萬花筒.mp4', title: '萬花筒', duration: '1:10', path: '街聲波影片/搞怪素材（11）/萬花筒.mp4' },
                 { name: '顏料.mp4', title: '顏料', duration: '0:55', path: '街聲波影片/搞怪素材（11）/顏料.mp4' }
             ]
@@ -758,216 +738,58 @@
         const closeModal = document.getElementById('closeModal');
         const loadingScreen = document.getElementById('loadingScreen');
         const mainApp = document.getElementById('mainApp');
-        const progressBar = document.getElementById('progressBar');
-        const loadingCount = document.getElementById('loadingCount');
 
-        // 手機檢測
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        
-        // Loading 狀態
-        let totalVideos = 0;
-        let loadedVideos = 0;
-        let loadingTimeout;
-        let intersectionObserver;
-
-        // 創建影片項目
+        // 創建影片項目 - 統一使用縮圖
         function createVideoItem(video) {
             const trendingBadge = video.trending ? '<div class="trending-badge">熱門</div>' : '';
             
-            // 手機版使用真實縮圖，桌面版使用影片縮圖
-            if (isMobile) {
-                // 生成縮圖路徑 - 使用 encodeURIComponent 處理中文
-                let thumbnailPath = video.path
-                    .replace('./街聲波影片/', './thumbnails/')
-                    .replace(/\.mp4$/i, '.jpg');
-                
-                // URL 編碼中文字符
-                const pathParts = thumbnailPath.split('/');
-                for (let i = 0; i < pathParts.length; i++) {
-                    if (i > 1) { // 跳過 ./thumbnails
-                        pathParts[i] = encodeURIComponent(pathParts[i]);
-                    }
+            // 生成縮圖路徑
+            let thumbnailPath = video.path
+                .replace('街聲波影片/', 'thumbnails/')
+                .replace(/\.mp4$/i, '.jpg');
+            
+            // URL 編碼中文字符
+            const pathParts = thumbnailPath.split('/');
+            for (let i = 0; i < pathParts.length; i++) {
+                if (i > 0) { // 跳過第一個空字符串
+                    pathParts[i] = encodeURIComponent(pathParts[i]);
                 }
-                thumbnailPath = pathParts.join('/');
-                
-                console.log('Mobile thumbnail path:', thumbnailPath);
-                
-                return `
-                    <div class="video-item" onclick="playVideo('${video.path}')">
-                        ${trendingBadge}
-                        <div class="video-thumbnail mobile-thumbnail" data-video-path="${video.path}">
-                            <img class="thumbnail-image" 
-                                 src="${thumbnailPath}" 
-                                 alt="${video.title}"
-                                 onload="console.log('Thumbnail loaded:', '${video.title}')"
-                                 onerror="console.log('Thumbnail failed:', '${video.title}'); handleThumbnailError(this)">
-                            <div class="play-overlay"></div>
-                        </div>
-                        <div class="video-info">
-                            <div class="video-title">${video.title}</div>
-                            <div class="video-duration">
-                                <div class="duration-dot"></div>
-                                ${video.duration}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            } else {
-                return `
-                    <div class="video-item" onclick="playVideo('${video.path}')">
-                        ${trendingBadge}
-                        <div class="video-thumbnail loading-shimmer" data-video-path="${video.path}">
-                            <video class="lazy-video" data-src="${video.path}#t=0.5" muted>
-                            </video>
-                            <div class="play-overlay"></div>
-                        </div>
-                        <div class="video-info">
-                            <div class="video-title">${video.title}</div>
-                            <div class="video-duration">
-                                <div class="duration-dot"></div>
-                                ${video.duration}
-                            </div>
-                        </div>
-                    </div>
-                `;
             }
+            thumbnailPath = pathParts.join('/');
+            
+            return `
+                <div class="video-item" onclick="playVideo('${video.path}')">
+                    ${trendingBadge}
+                    <div class="video-thumbnail">
+                        <img class="thumbnail-image" 
+                             src="${thumbnailPath}" 
+                             alt="${video.title}"
+                             onload="this.style.display='block'"
+                             onerror="showPlaceholder(this)">
+                        <div class="thumbnail-placeholder">
+                            <div class="video-icon">🎬</div>
+                            <div class="video-format">MP4</div>
+                        </div>
+                        <div class="play-overlay"></div>
+                    </div>
+                    <div class="video-info">
+                        <div class="video-title">${video.title}</div>
+                        <div class="video-duration">
+                            <div class="duration-dot"></div>
+                            ${video.duration}
+                        </div>
+                    </div>
+                </div>
+            `;
         }
 
-        // 處理縮圖載入完成（手機版）
-        function handleThumbnailLoaded(imgElement) {
-            imgElement.parentElement.classList.remove('loading-shimmer');
-            loadedVideos++;
-            updateLoadingProgress();
-            console.log(`Thumbnail loaded: ${loadedVideos}/${totalVideos}`);
-        }
-
-        // 處理縮圖載入錯誤（手機版）
-        function handleThumbnailError(imgElement) {
-            console.log('Thumbnail failed to load:', imgElement.src);
-            // 載入失敗時顯示備用樣式
+        // 處理縮圖載入失敗
+        function showPlaceholder(imgElement) {
             imgElement.style.display = 'none';
-            
-            // 檢查是否已經有 placeholder
-            if (!imgElement.parentElement.querySelector('.mobile-placeholder')) {
-                const placeholder = document.createElement('div');
-                placeholder.className = 'mobile-placeholder';
-                placeholder.innerHTML = `
-                    <div class="video-icon">🎬</div>
-                    <div class="video-format">MP4</div>
-                `;
-                imgElement.parentElement.appendChild(placeholder);
+            const placeholder = imgElement.nextElementSibling;
+            if (placeholder && placeholder.classList.contains('thumbnail-placeholder')) {
+                placeholder.style.display = 'flex';
             }
-            
-            imgElement.parentElement.classList.remove('loading-shimmer');
-            loadedVideos++;
-            updateLoadingProgress();
-        }
-
-        // 桌面版延遲載入影片
-        function initializeLazyLoading() {
-            if (isMobile) return;
-
-            intersectionObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const videoElement = entry.target.querySelector('.lazy-video');
-                        if (videoElement && !videoElement.src) {
-                            videoElement.src = videoElement.dataset.src;
-                            videoElement.preload = 'metadata';
-                            videoElement.onloadeddata = () => {
-                                entry.target.classList.remove('loading-shimmer');
-                                loadedVideos++;
-                                updateLoadingProgress();
-                            };
-                            videoElement.onerror = () => {
-                                entry.target.classList.remove('loading-shimmer');
-                                loadedVideos++;
-                                updateLoadingProgress();
-                            };
-                            intersectionObserver.unobserve(entry.target);
-                        }
-                    }
-                });
-            }, { 
-                rootMargin: '50px',
-                threshold: 0.1 
-            });
-
-            // 觀察所有影片縮圖
-            setTimeout(() => {
-                document.querySelectorAll('.video-thumbnail:not(.mobile-thumbnail)').forEach(thumbnail => {
-                    intersectionObserver.observe(thumbnail);
-                });
-            }, 100);
-        }
-
-        // 處理影片載入完成
-        function handleVideoLoaded(videoElement) {
-            videoElement.parentElement.classList.remove('loading-shimmer');
-            loadedVideos++;
-            updateLoadingProgress();
-        }
-
-        // 處理影片載入錯誤
-        function handleVideoError(videoElement) {
-            videoElement.parentElement.classList.remove('loading-shimmer');
-            // 保持 fallback 背景
-            loadedVideos++;
-            updateLoadingProgress();
-        }
-
-        // 更新載入進度
-        function updateLoadingProgress() {
-            const progress = (loadedVideos / totalVideos) * 100;
-            progressBar.style.width = progress + '%';
-            loadingCount.textContent = `${loadedVideos} / ${totalVideos}`;
-
-            // 所有影片載入完成
-            if (loadedVideos >= totalVideos) {
-                setTimeout(() => {
-                    completeLoading();
-                }, 500); // 稍微延遲讓用戶看到 100%
-            }
-        }
-
-        // 完成載入
-        function completeLoading() {
-            loadingScreen.classList.add('hidden');
-            mainApp.classList.add('loaded');
-            
-            // 清除超時
-            if (loadingTimeout) {
-                clearTimeout(loadingTimeout);
-            }
-        }
-
-        // 初始化載入進度
-        function initializeLoading() {
-            // 重置計數器
-            loadedVideos = 0;
-            
-            // 計算總影片數量
-            totalVideos = videoData.all.length;
-            loadingCount.textContent = `0 / ${totalVideos}`;
-            console.log(`Initializing loading: ${totalVideos} total videos, isMobile: ${isMobile}`);
-            
-            // 手機版快速完成載入，不等待縮圖
-            if (isMobile) {
-                setTimeout(() => {
-                    progressBar.style.width = '100%';
-                    loadingCount.textContent = `${totalVideos} / ${totalVideos}`;
-                    setTimeout(() => {
-                        completeLoading();
-                    }, 500);
-                }, 1000);
-                return;
-            }
-            
-            // 桌面版設置超時保護（5秒後強制完成）
-            loadingTimeout = setTimeout(() => {
-                console.log('Loading timeout - forcing completion');
-                completeLoading();
-            }, 5000);
         }
 
         // 渲染影片列表
@@ -976,19 +798,6 @@
             if (container && videoData[category]) {
                 container.innerHTML = videoData[category].map(createVideoItem).join('');
             }
-        }
-
-        // 只在主分類計算載入數量
-        function countVisibleVideos() {
-            if (isMobile) {
-                // 手機版只計算目前顯示的分類
-                const activeSection = document.querySelector('.category-section.active');
-                if (activeSection) {
-                    const images = activeSection.querySelectorAll('.thumbnail-image');
-                    return images.length;
-                }
-            }
-            return videoData.all.length;
         }
 
         // 播放影片
@@ -1008,7 +817,6 @@
 
         // 切換分類
         function switchCategory(category) {
-            // 更新標籤狀態
             categoryTabs.forEach(tab => {
                 tab.classList.remove('active');
                 if (tab.dataset.category === category) {
@@ -1016,13 +824,18 @@
                 }
             });
 
-            // 更新內容區塊
             categorySections.forEach(section => {
                 section.classList.remove('active');
                 if (section.dataset.section === category) {
                     section.classList.add('active');
                 }
             });
+        }
+
+        // 完成載入
+        function completeLoading() {
+            loadingScreen.classList.add('hidden');
+            mainApp.classList.add('loaded');
         }
 
         // 事件監聽
@@ -1040,7 +853,6 @@
             }
         });
 
-        // 鍵盤事件
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeVideoModal();
@@ -1049,18 +861,15 @@
 
         // 初始化
         document.addEventListener('DOMContentLoaded', () => {
-            // 初始化載入狀態
-            initializeLoading();
-            
             // 渲染所有分類的影片
             Object.keys(videoData).forEach(category => {
                 renderVideos(category);
             });
             
-            // 桌面版初始化延遲載入
-            if (!isMobile) {
-                initializeLazyLoading();
-            }
+            // 2秒後完成載入
+            setTimeout(() => {
+                completeLoading();
+            }, 2000);
         });
     </script>
 </body>
